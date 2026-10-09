@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RACECUBE Dashboard Manual</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }
+        .lang-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .lang-btn.active {
+            background-color: #2196F3;
+            border-color: #2196F3;
+        }
+        h1 {
+            color: #fada5e;
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-top: 10px;
+        }
+        h2 {
+            color: #64b5f6;
+            margin-top: 35px;
+            border-left: 4px solid #2196F3;
+            padding-left: 10px;
+            background-color: #1a1c20;
+            padding: 10px;
+            border-radius: 0 5px 5px 0;
+        }
+        h3 {
+            color: #ffb74d;
+            margin-top: 25px;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            background-color: #2a2a2a;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+        strong {
+            color: #fff;
+        }
+        .warning {
+            background-color: #4a141c;
+            border-left: 4px solid #ff5252;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .warning strong {
+            color: #ff5252;
+        }
+        .info-box {
+            background-color: #1a237e;
+            border-left: 4px solid #5c6bc0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        pre {
+            background-color: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            border: 1px solid #333;
+        }
+        .pinout-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .pinout-table th, .pinout-table td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+        .pinout-table th {
+            background-color: #333;
+            color: #fada5e;
+        }
+        code {
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ffb74d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Переключатель языков -->
+    <div class="lang-switch">
+        <button class="lang-btn active" id="btn-ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+
+    <!-- ==================== РУССКАЯ ВЕРСИЯ (RUSSIAN) ==================== -->
+    <div id="content-ru">
+        <h1>Руководство по аппаратному подключению RACECUBE</h1>
+
+        <div class="warning">
+            <strong>⚠️ ВАЖНОЕ ПРАВИЛО:</strong> Все модули, дисплеи, драйверы и сам микроконтроллер ESP32-S3 должны быть соединены по линии <code>GND</code> в одну общую сеть. Без общей массы система будет зависать по шине I2C или работать некорректно.
+        </div>
+
+        <h2>1. Шина I2C и питание логики (Шилды PCA9685 и PCF8575)</h2>
+        <p>Питание логики микросхем подается отдельно от силового питания моторов. На шилдах PCA9685 контакт OE аппаратно притянут к земле, управлять им не нужно.</p>
+        <ul>
+            <li><strong>SDA (Данные):</strong> Пин <code>17</code> (ESP32) ➔ SDA (PCA9685) ➔ SDA (PCF8575)</li>
+            <li><strong>SCL (Тактирование):</strong> Пин <code>18</code> (ESP32) ➔ SCL (PCA9685) ➔ SCL (PCF8575)</li>
+            <li><strong>5V (Логика):</strong> Пин <code>5V</code> (ESP32) ➔ Пины <code>5V</code> (на гребенках PCA9685) ➔ VCC на PCF8575</li>
+            <li><strong>GND (Логика):</strong> Пин <code>GND</code> (ESP32) ➔ Пины <code>GND</code> (на гребенках PCA9685) ➔ GND на PCF8575</li>
+        </ul>
+
+        <h2>2. Питание шаговых моторов (PCA9685)</h2>
+        <p>Зеленые клеммники питают исключительно катушки моторов. Питать их от USB или пина 5V самой платы ESP32 категорически запрещено.</p>
+        <ul>
+            <li><strong>V+ (Зеленая клемма):</strong> К автомобильному DC-DC преобразователю 5V (от 5 Ампер и выше).</li>
+            <li><strong>GND (Зеленая клемма):</strong> К минусу того же DC-DC преобразователя.</li>
+        </ul>
+
+        <h2>3. Подключение и логика работы логометров (шаговых моторов)</h2>
+        <p>Приборная панель использует двухфазные шаговые двигатели (типа VID29, Switec X27.168). Каждый мотор состоит из двух независимых катушек (SIN и COS), для работы которых требуется 4 контакта.</p>
+        <ul>
+            <li><strong>Аппаратное подключение:</strong> Каждый мотор подключается строго к 4 подряд идущим ШИМ-каналам на платах расширения PCA9685. Например, шкала №0 займет каналы 0, 1, 2, 3 на первой плате; шкала №1 займет каналы 4, 5, 6, 7 и так далее.</li>
+            <li><strong>Логика работы (микрошаг):</strong> ESP32 использует предрассчитанную таблицу синусов для плавного позиционирования стрелки через ШИМ-сигнал.</li>
+        </ul>
+
+        <h2>4. Подключение CAN-модуля (VP1050)</h2>
+        <ul>
+            <li><strong>TX (Передача):</strong> Пин <code>7</code> (ESP32) ➔ TXD (VP1050)</li>
+            <li><strong>RX (Прием):</strong> Пин <code>4</code> (ESP32) ➔ RXD (VP1050)</li>
+            <li><strong>Питание:</strong> Пин <code>5V</code> и <code>GND</code> от соответствующих пинов ESP32.</li>
+            <li><strong>CAN H / CAN L:</strong> К соответствующим проводам OBD2/CAN шины автомобиля.</li>
+        </ul>
+
+        <h2>5. ВЫХОДЫ: Подключение LED-ламп к модулю PCF8575</h2>
+        <p>Чип PCF8575 имеет выходы типа «открытый сток» (он втягивает ток). Питание на светодиоды подается постоянно от линии 5V, а модуль замыкает их катод (-) на массу для включения света.</p>
+<pre>
+[ +5V от DC-DC ]
+       │
+[ Резистор 1 кОм ]  <-- Ограничивает ток
+       │
+[ + Анод (длинная ножка LED) ]
+  СВЕТОДИОД
+[ - Катод (короткая ножка LED) ]
+       │
+[ Пин P0...P15 на модуле PCF8575 ]
+</pre>
+        <p><strong>Распиновка портов PCF8575:</strong><br>
+        P0: Лев. поворот | P1: Прав. поворот | P2: Габариты | P3: Ближний | P4: Дальний<br>
+        P5: Масло | P6: Check Engine | P7: Перед. ПТФ | P8: Задн. ПТФ | P9: Дверь<br>
+        P10: Ручник | P11-P14: Универсальные лампы</p>
+
+        <h2>6. ВХОДЫ: Считывание физических сигналов автомобиля (Оптопары)</h2>
+        <div class="warning">
+            <strong>⚠️ КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО:</strong> Подавать автомобильные 12V-14.4V напрямую на пины ESP32. Микроконтроллер сгорит мгновенно. Максимальное напряжение на пинах ESP32 — 3.3V!
+        </div>
+        <p>Для безопасного чтения сигналов фар, поворотников, дверей используйте <strong>модуль опторазвязки (PC817 12V to 3.3V)</strong>. Он обеспечивает полную гальваническую развязку.</p>
+        
+        <h3>Схема подключения входов:</h3>
+<pre>
+[ Провод 12V от фары/поворотника ] ➔ [ IN+ канала оптопары ]
+[ Масса кузова авто ]            ➔ [ IN- канала оптопары ]
+
+[ Пин 3.3V ESP32 ]               ➔ [ VCC логики оптопары ]
+[ Пин GND ESP32 ]                ➔ [ GND логики оптопары ]
+[ Свободный GPIO пин ESP32 ]     ➔ [ OUT канала оптопары ]
+</pre>
+        <div class="info-box">
+            <strong>Свободные пины ESP32-S3 для входов:</strong> Рекомендуемые пины для оптопар: <code>1, 2, 3, 5, 6, 8, 9, 15, 16</code>, а также пины с <code>35</code> по <code>48</code>.
+        </div>
+
+        <h2>7. Настройка ламп в WEB-интерфейсе</h2>
+        <table class="pinout-table">
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Описание и применение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Источник данных</strong></td>
+                    <td>
+                        <code>CAN / ESP-NOW</code> — Данные из цифровой шины или по воздуху.<br>
+                        <code>Цифровой Пин</code> — Чтение физического пина. <b>Для опторазвязки!</b><br>
+                        <code>Аналоговый Пин</code> — Чтение через АЦП (для резистивных датчиков).
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Номер Пина ESP32</strong></td>
+                    <td>Укажите номер GPIO, к которому подключена оптопара (например, <code>5</code>). Для CAN оставьте <code>-1</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong>Порог АЦП</strong></td>
+                    <td>Только для режима "Аналоговый Пин" (0-4095). Лампа горит при превышении порога.</td>
+                </tr>
+                <tr>
+                    <td><strong>Инверсия сигнала</strong></td>
+                    <td>Модули опторазвязки инвертируют сигнал (выдают LOW при 12V на входе). Если лампа работает наоборот, выберите <code>Да (Сигнал НИЗКИЙ = ВКЛ)</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>8. Настройка логометров в WEB-интерфейсе</h2>
+        <table class="pinout-table">
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Описание и применение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Поправка Нуля (градусы)</strong></td>
+                    <td>Смещение начальной позиции. Выравнивает стрелку на нулевую отметку циферблата.</td>
+                </tr>
+                <tr>
+                    <td><strong>Рабочий угол (градусы)</strong></td>
+                    <td>Максимальный угол шкалы (обычно <code>270</code> или <code>315</code>). Защищает мотор от заворота.</td>
+                </tr>
+                <tr>
+                    <td><strong>Множитель (Scale)</strong></td>
+                    <td>Коэффициент корректировки. Например: <code>0.95</code> для занижения на 5%. По умолчанию <code>1.0</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== АНГЛИЙСКАЯ ВЕРСИЯ (ENGLISH) ==================== -->
+    <div id="content-en" style="display: none;">
+        <h1>RACECUBE Hardware Connection Guide</h1>
+
+        <div class="warning">
+            <strong>⚠️ IMPORTANT RULE:</strong> All modules, displays, drivers, and the ESP32-S3 microcontroller MUST be connected via a common <code>GND</code> line. Without a shared ground, the system will freeze on the I2C bus or behave erratically.
+        </div>
+
+        <h2>1. I2C Bus and Logic Power (PCA9685 & PCF8575 Shields)</h2>
+        <p>Logic power must be supplied separately from the motor power. The OE pin on the PCA9685 shields is hardware-pulled to ground, no need to control it.</p>
+        <ul>
+            <li><strong>SDA (Data):</strong> Pin <code>17</code> (ESP32) ➔ SDA (PCA9685) ➔ SDA (PCF8575)</li>
+            <li><strong>SCL (Clock):</strong> Pin <code>18</code> (ESP32) ➔ SCL (PCA9685) ➔ SCL (PCF8575)</li>
+            <li><strong>5V (Logic):</strong> Pin <code>5V</code> (ESP32) ➔ <code>5V</code> header pins (PCA9685) ➔ VCC (PCF8575)</li>
+            <li><strong>GND (Logic):</strong> Pin <code>GND</code> (ESP32) ➔ <code>GND</code> header pins (PCA9685) ➔ GND (PCF8575)</li>
+        </ul>
+
+        <h2>2. Stepper Motor Power (PCA9685)</h2>
+        <p>The green terminals only power the motor coils. DO NOT power them from USB or the ESP32's 5V pin.</p>
+        <ul>
+            <li><strong>V+ (Green terminal):</strong> To an automotive DC-DC 5V step-down converter (5A or more).</li>
+            <li><strong>GND (Green terminal):</strong> To the minus of the DC-DC converter.</li>
+        </ul>
+
+        <h2>3. Stepper Motor (Gauge) Connection & Logic</h2>
+        <p>The dashboard uses 2-phase stepper motors (VID29, Switec X27.168). Each motor consists of two independent coils (SIN and COS) requiring 4 pins.</p>
+        <ul>
+            <li><strong>Hardware:</strong> Each motor connects to 4 consecutive PWM channels on the PCA9685 boards. (e.g., Gauge 0 uses ch 0, 1, 2, 3).</li>
+            <li><strong>Logic (Microstepping):</strong> ESP32 uses precalculated sine tables to send exact PWM signals via I2C for smooth needle positioning.</li>
+        </ul>
+
+        <h2>4. CAN Module Connection (VP1050)</h2>
+        <ul>
+            <li><strong>TX (Transmit):</strong> Pin <code>7</code> (ESP32) ➔ TXD (VP1050)</li>
+            <li><strong>RX (Receive):</strong> Pin <code>4</code> (ESP32) ➔ RXD (VP1050)</li>
+            <li><strong>Power:</strong> <code>5V</code> and <code>GND</code> pins from the ESP32.</li>
+            <li><strong>CAN H / L:</strong> To the respective OBD2/CAN bus wires of the car.</li>
+        </ul>
+
+        <h2>5. OUTPUTS: LED Indicators to PCF8575</h2>
+        <p>The PCF8575 chip has open-drain outputs (it sinks current). Supply constant 5V to the LED anode, and the module will sink the cathode (-) to ground to turn it on.</p>
+<pre>
+[ +5V from DC-DC ]
+       │
+[ 1 kOhm Resistor ]  <-- Current limiting
+       │
+[ + Anode (long LED leg) ]
+  LED DIODE
+[ - Cathode (short LED leg) ]
+       │
+[ Pin P0...P15 on PCF8575 module ]
+</pre>
+        <p><strong>PCF8575 Pinout:</strong><br>
+        P0: L Turn | P1: R Turn | P2: Parking Lights | P3: Low Beam | P4: High Beam<br>
+        P5: Oil | P6: Check Engine | P7: Front Fog | P8: Rear Fog | P9: Door Open<br>
+        P10: Brake | P11-P14: Universal Aux</p>
+
+        <h2>6. INPUTS: Reading Physical Car Signals (Optocouplers)</h2>
+        <div class="warning">
+            <strong>⚠️ STRICTLY PROHIBITED:</strong> Do not supply automotive 12V-14.4V directly to ESP32 pins. The microcontroller will burn instantly. Max voltage for ESP32 pins is 3.3V!
+        </div>
+        <p>To safely read headlights, turn signals, and door switches, use a <strong>PC817 12V to 3.3V optocoupler board</strong> for full galvanic isolation.</p>
+        
+        <h3>Input Connection Diagram:</h3>
+<pre>
+[ 12V wire from car signal ] ➔ [ IN+ of optocoupler channel ]
+[ Car body ground (Chassis) ]➔ [ IN- of optocoupler channel ]
+
+[ 3.3V Pin from ESP32 ]      ➔ [ VCC logic of optocoupler ]
+[ GND Pin from ESP32 ]       ➔ [ GND logic of optocoupler ]
+[ Free ESP32 GPIO pin ]      ➔ [ OUT of optocoupler channel ]
+</pre>
+        <div class="info-box">
+            <strong>Free ESP32-S3 Input Pins:</strong> Recommended pins for optocouplers are <code>1, 2, 3, 5, 6, 8, 9, 15, 16</code>, and <code>35</code> through <code>48</code>.
+        </div>
+
+        <h2>7. WEB Interface: Lamp Setup</h2>
+        <table class="pinout-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Data Source</strong></td>
+                    <td>
+                        <code>CAN / ESP-NOW</code> — Data from digital bus/wireless.<br>
+                        <code>Digital Pin</code> — Reads physical pin state. <b>Use this for optocouplers!</b><br>
+                        <code>Analog Pin</code> — ADC read (for resistive sensors).
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>ESP32 Pin Number</strong></td>
+                    <td>The GPIO connected to the optocoupler (e.g., <code>5</code>). Leave at <code>-1</code> for CAN.</td>
+                </tr>
+                <tr>
+                    <td><strong>ADC Threshold</strong></td>
+                    <td>Only for "Analog Pin" mode (0-4095). Lamp turns on when voltage exceeds this value.</td>
+                </tr>
+                <tr>
+                    <td><strong>Signal Inversion</strong></td>
+                    <td>Most optocouplers output LOW when 12V is applied. If the lamp works in reverse, select <code>Yes (LOW Signal = ON)</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>8. WEB Interface: Gauge Setup</h2>
+        <table class="pinout-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Zero Offset (degrees)</strong></td>
+                    <td>Adjusts the starting position so the needle perfectly aligns with the '0' mark on your dial.</td>
+                </tr>
+                <tr>
+                    <td><strong>Working Angle (degrees)</strong></td>
+                    <td>The total sweep of your printed dial (usually <code>270</code> or <code>315</code>). Prevents the motor from pushing past the limit.</td>
+                </tr>
+                <tr>
+                    <td><strong>Multiplier (Scale)</strong></td>
+                    <td>Adjustment factor. For example, <code>0.95</code> reduces the reading by 5% (useful for speedometer correction). Default is <code>1.0</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    function setLang(lang) {
+        // Меняем активную кнопку
+        document.getElementById('btn-ru').classList.remove('active');
+        document.getElementById('btn-en').classList.remove('active');
+        document.getElementById('btn-' + lang).classList.add('active');
+
+        // Скрываем/показываем контент
+        if (lang === 'ru') {
+            document.getElementById('content-ru').style.display = 'block';
+            document.getElementById('content-en').style.display = 'none';
+        } else {
+            document.getElementById('content-ru').style.display = 'none';
+            document.getElementById('content-en').style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
