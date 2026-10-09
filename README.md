@@ -2,6 +2,10 @@
 
 Welcome to the RACECUBE Custom Dashboard repository! 🏁
 This isn't just a standard gauge cluster setup — it’s a highly complex, fully custom-built instrument panel designed from the ground up for a very specific, one-of-a-kind automotive build. 🛠️✨
+
+
+<img width="765" height="437" alt="73537567563" src="https://github.com/user-attachments/assets/92798ca6-c8e9-473c-9a4f-237f207f7c96" />
+
 🌟 About the Project
 
 The goal of this project was to create a modern, highly responsive, and fully customizable analog dashboard managed by an ESP32-S3 microcontroller. It reads real-time telemetry via CAN-bus (OBD2) and ESP-NOW, drives 10 independent stepper motors, and controls 15 LED indicators, all calibratable through a built-in Wi-Fi Web Server! 📱⚙️
@@ -25,6 +29,8 @@ It will be installed in a custom Mitsubishi Lancer Evolution V Wagon 🚘🔥 fe
     Drivetrain: Full AWD system retrofitted from a Mitsubishi Airtrek 🛤️
 
     Transmission: A highly customized W5A51 Automatic Transmission, beefed up with reinforced planetary gears from an A5HF1 (A300) to handle the extreme torque! 🦾💥
+
+<img width="765" height="561" alt="6575367" src="https://github.com/user-attachments/assets/27d89cd5-9ea1-4dda-9b74-3045ffe08f33" />
 
 💻 Tech Specs & Features
 
